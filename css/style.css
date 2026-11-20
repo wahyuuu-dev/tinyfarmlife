@@ -1,0 +1,257 @@
+:root{
+  --green:#5aa84a; --green-dark:#2f4a2a; --brown:#7a4e2d; --brown-dark:#5a3820;
+  --cream:#f6ecd0; --orange:#e8873a; --sky:#6cb8e6; --ink:#2b2118;
+  --sl:env(safe-area-inset-left,0px); --sr:env(safe-area-inset-right,0px);
+  --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--green-dark);overscroll-behavior:none;touch-action:none;
+  font-family:"Courier New",Courier,monospace}
+#stage{position:fixed;top:var(--st);bottom:var(--sb);left:var(--sl);right:var(--sr);display:flex;align-items:center;justify-content:center}
+#game{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,1.8vh,12px);
+  background:rgba(43,33,24,.6);padding:var(--st) var(--sr) var(--sb) var(--sl);z-index:10}
+.hidden{display:none!important}
+h1{margin:0;color:var(--cream);font-size:clamp(26px,10vh,56px);letter-spacing:2px;text-shadow:0 4px 0 var(--brown-dark)}
+h2{margin:0 0 4px;color:var(--cream);font-size:clamp(22px,7vh,36px);text-shadow:0 3px 0 var(--brown-dark)}
+.tag{margin:0 0 clamp(4px,2vh,14px);color:var(--sky);font-weight:bold;font-size:clamp(12px,3.4vh,18px)}
+.note{margin:0 0 8px;color:var(--cream);text-align:center;line-height:1.5;max-width:90vw;font-size:clamp(12px,3.2vh,16px)}
+.btn{min-width:min(240px,70vw);min-height:clamp(34px,9vh,46px);padding:0 16px;font:bold clamp(13px,3.6vh,17px) "Courier New",monospace;
+  background:var(--cream);color:var(--ink);border:3px solid var(--ink);box-shadow:0 4px 0 var(--brown-dark);cursor:pointer}
+.btn:hover:not(:disabled),.btn:focus-visible{background:var(--orange);outline:none}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--brown-dark)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.iconbtn{display:none;position:fixed;right:calc(var(--sr) + 10px);bottom:calc(var(--sb) + 94px);width:44px;height:44px;z-index:5;
+  background:var(--cream);color:var(--ink);border:3px solid var(--ink);font:bold 16px "Courier New",monospace;opacity:.85;cursor:pointer}
+body.playing .iconbtn{display:block}
+
+#joyZone{display:none;position:fixed;left:0;bottom:0;width:45%;height:70%;z-index:4;touch-action:none}
+@media (pointer:coarse){body.playing #joyZone{display:block}}
+#joyBase{display:none;position:fixed;width:100px;height:100px;border-radius:50%;background:rgba(246,236,208,.25);border:3px solid rgba(246,236,208,.7);pointer-events:none}
+#joyKnob{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(232,135,58,.85);border:3px solid var(--ink)}
+
+#rotate{display:none;position:fixed;inset:0;z-index:100;background:var(--green-dark);color:var(--cream);flex-direction:column;
+  align-items:center;justify-content:center;gap:24px;padding:24px;text-align:center;font-weight:bold;font-size:18px}
+.phone{width:44px;height:76px;border:4px solid var(--cream);border-radius:8px;animation:turn 2.4s ease-in-out infinite}
+@keyframes turn{0%,25%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+@media (orientation:portrait) and (pointer:coarse){#rotate{display:flex}}
+@media (prefers-reduced-motion:reduce){.phone{animation:none;transform:rotate(-90deg)}}
+
+#actions{display:none;position:fixed;right:calc(var(--sr) + 12px);bottom:calc(var(--sb) + 12px);z-index:5;align-items:flex-end;gap:12px}
+@media (pointer:coarse){body.playing #actions{display:flex}}
+.act{width:68px;height:68px;border-radius:50%;border:3px solid var(--ink);background:var(--orange);color:var(--ink);
+  font:bold 13px "Courier New",monospace;box-shadow:0 4px 0 var(--brown-dark);touch-action:none}
+.act.small{width:50px;height:50px;background:var(--cream);font-size:11px}
+.act:active{transform:translateY(3px);box-shadow:0 1px 0 var(--brown-dark)}
+
+.panel{background:var(--cream);color:var(--ink);border:4px solid var(--ink);box-shadow:0 6px 0 var(--brown-dark);padding:10px 14px;
+  display:flex;flex-direction:column;gap:6px;width:min(560px,94vw);max-height:calc(100% - 12px);overflow:auto;touch-action:pan-y}
+.panel-head{display:flex;justify-content:space-between;align-items:center}
+.panel h2{margin:0;color:var(--ink);text-shadow:none;font-size:clamp(16px,5vh,24px)}
+.panel h3{margin:0 0 2px;font-size:clamp(11px,3vh,14px)}
+.coins{font-weight:bold;background:var(--orange);border:2px solid var(--ink);padding:2px 8px;font-size:clamp(12px,3.4vh,16px)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row{display:flex;align-items:center;gap:6px;min-height:clamp(28px,8vh,36px);border-bottom:2px dotted var(--brown);font-size:clamp(11px,3vh,14px)}
+.row .name{flex:1}
+.row .sub{opacity:.7;font-size:.85em}
+.chip{display:inline-block;width:12px;height:12px;border:2px solid var(--ink);flex:none}
+.mini{min-height:clamp(26px,7vh,32px);padding:0 8px;font:bold clamp(10px,2.8vh,12px) "Courier New",monospace;background:var(--orange);color:var(--ink);
+  border:2px solid var(--ink);cursor:pointer}
+.mini:active:not(:disabled){transform:translateY(2px)}
+.mini:disabled{opacity:.35;cursor:not-allowed}
+.msg{min-height:1.3em;font-weight:bold;font-size:clamp(11px,3vh,14px);color:var(--brown-dark)}
+.panel .btn{min-height:clamp(30px,8vh,40px);font-size:clamp(12px,3.2vh,15px);align-self:center}
+@media (max-width:520px){.cols{grid-template-columns:1fr}}
+
+.ver{margin:0;color:var(--cream);opacity:.6;font-size:11px}
+#errBox{position:fixed;z-index:200;left:calc(var(--sl) + 6px);right:calc(var(--sr) + 6px);top:calc(var(--st) + 6px);padding:8px 10px;background:#a33a2a;color:#fff;
+  border:3px solid var(--ink);font:bold 12px "Courier New",monospace;line-height:1.4;cursor:pointer;touch-action:manipulation}
+@media (max-height:420px){
+  .row .name br{display:none}.row .sub{margin-left:6px}
+  .row{min-height:26px}.panel{padding:6px 10px;gap:3px}.panel h3{margin:0}
+}
+
+/* Ringkasan aktivitas harian. */
+.summary-panel{width:min(420px,92vw)}
+#summaryStats{display:grid;gap:4px;margin:8px 0}
+.summary-row{display:flex;justify-content:space-between;gap:16px;padding:4px 6px;border-bottom:1px dotted var(--brown);font-size:13px}
+.summary-row b{font-variant-numeric:tabular-nums}
+@media (max-height:420px){
+  .summary-row{font-size:11px;padding:2px 4px}
+}
+
+/* V1.2.0 responsive polish: konsisten pada desktop, laptop, tablet, dan HP. */
+html, body { width:100%; min-width:0; min-height:100%; }
+body { -webkit-text-size-adjust:100%; }
+#stage { width:100%; height:100%; overflow:hidden; }
+#game { max-width:100%; max-height:100%; touch-action:none; }
+button { touch-action:manipulation; }
+.btn, .mini, .act, .iconbtn { -webkit-user-select:none; user-select:none; }
+#joyZone { left:var(--sl); bottom:var(--sb); width:min(34vw,160px); height:min(42vh,160px); }
+#joyBase { z-index:5; width:100px; height:100px; margin:0; }
+#joyKnob { pointer-events:none; }
+#actions { right:calc(var(--sr) + 12px); bottom:calc(var(--sb) + 12px); gap:clamp(7px,2vw,12px); }
+.act { width:clamp(54px,9vh,68px); height:clamp(54px,9vh,68px); min-width:48px; min-height:48px; }
+.act.small { width:clamp(46px,7vh,54px); height:clamp(46px,7vh,54px); min-width:44px; min-height:44px; }
+.iconbtn { min-width:44px; min-height:44px; }
+.panel { overscroll-behavior:contain; scrollbar-width:thin; }
+.panel button { min-height:38px; }
+#rotate { display:none; padding:calc(var(--st) + 20px) calc(var(--sr) + 20px) calc(var(--sb) + 20px) calc(var(--sl) + 20px); }
+@media (orientation:portrait) and (pointer:coarse) {
+  #rotate { display:none; }
+  body.portrait-device[data-mode="paused"] #rotate { display:flex; }
+}
+@media (pointer:coarse) {
+  .screen { padding-left:calc(var(--sl) + 12px); padding-right:calc(var(--sr) + 12px); }
+  .btn { min-height:44px; }
+  .panel { width:min(560px, calc(100vw - var(--sl) - var(--sr) - 20px)); }
+  .mini { min-height:36px; padding:0 10px; }
+}
+@media (orientation:landscape) and (pointer:coarse) and (max-height:520px) {
+  #joyZone { width:min(28vw,150px); height:min(55vh,140px); }
+  #actions { bottom:calc(var(--sb) + 7px); right:calc(var(--sr) + 8px); gap:7px; }
+  .act { width:52px; height:52px; min-width:48px; min-height:48px; font-size:11px; }
+  .act.small { width:42px; height:42px; min-width:40px; min-height:40px; font-size:10px; }
+  .iconbtn { bottom:calc(var(--sb) + 66px); right:calc(var(--sr) + 8px); width:42px; height:42px; }
+  .screen { gap:5px; }
+  .screen h1 { font-size:clamp(24px,8vh,42px); }
+  .screen h2 { font-size:clamp(20px,6vh,30px); }
+  .screen .tag { margin-bottom:2px; }
+  .screen .btn { min-height:34px; }
+}
+@media (max-width:520px) and (orientation:landscape) {
+  .cols { grid-template-columns:1fr 1fr; gap:8px; }
+  .panel { padding:8px 10px; }
+  .row { font-size:11px; }
+  .panel .btn { min-height:38px; }
+}
+@media (max-height:360px) {
+  .panel { max-height:calc(100% - var(--st) - var(--sb) - 8px); }
+}
+@media (prefers-reduced-motion:reduce) {
+  *, *::before, *::after { scroll-behavior:auto !important; animation-duration:0.01ms !important; animation-iteration-count:1 !important; }
+}
+
+
+.special-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:36px;padding:4px 0;border-bottom:1px dotted var(--brown);font-size:12px}
+.special-row span{display:flex;flex-direction:column;gap:2px}
+.special-row small{opacity:.72;font-size:10px}
+.special-row .mini{min-width:58px}
+@media (max-height:520px){.special-row{min-height:29px;padding:2px 0}.special-row small{font-size:9px}}
+/* Toko dipisah menjadi dua kategori agar panel lebih ringan dibaca di HP. */
+.shop-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 9px}
+.shop-tab{border:2px solid var(--ink);background:#e3d3a8;color:var(--ink);font:bold 11px "Courier New",monospace;padding:8px 6px;min-height:36px}
+.shop-tab.active{background:var(--green);color:#fffdf5;box-shadow:inset 0 -3px rgba(0,0,0,.16)}
+.shop-view{min-width:0}
+.shop-view h3{margin:2px 0 5px}
+.shop-subsection{border-top:2px dashed var(--brown);margin-top:8px;padding-top:7px}
+.shop-panel{gap:5px}
+@media (max-width:520px){
+  .shop-tabs{gap:4px;margin:4px 0 6px}
+  .shop-tab{font-size:10px;padding:6px 3px}
+  .shop-panel{max-height:calc(100% - var(--st) - var(--sb) - 8px);overflow-y:auto}
+}
+
+/* V1.4.0 Tahap 3 — percakapan NPC */
+.dialogue-screen{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 18px);background:rgba(20,28,18,.42)}
+.dialogue-screen.hidden{display:none}
+.dialogue-panel{width:min(560px,100%);max-height:min(78vh,520px);overflow-y:auto;padding:16px;background:#f4e7c5;border:3px solid #34291d;box-shadow:0 5px 0 rgba(0,0,0,.22);color:#34291d}
+.dialogue-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:9px;border-bottom:2px dashed #9c7950}
+.dialogue-heading h2{margin:0;font:bold 20px "Courier New",monospace}
+.dialogue-heading p{margin:3px 0 0;font:12px "Courier New",monospace;opacity:.72}
+.dialogue-mark{display:grid;place-items:center;width:38px;height:38px;border:2px solid #34291d;background:#e8b85f;font-size:22px}
+.dialogue-message{margin:13px 0;min-height:48px;font:14px/1.55 "Courier New",monospace;white-space:normal}
+.dialogue-choices{display:grid;grid-template-columns:1fr;gap:7px}
+.dialogue-choice{width:100%;min-height:40px;padding:8px 10px;text-align:left;background:#e6d4a8;border:2px solid #59432d;color:#34291d;font:bold 12px "Courier New",monospace;cursor:pointer}
+.dialogue-choice:active{transform:translateY(1px);background:#d8bd83}
+.dialogue-close{display:block;margin:12px 0 0 auto;min-height:40px;padding:7px 14px;background:#668d50;color:#fffdf5;border:2px solid #34291d;font:bold 12px "Courier New",monospace}
+@media(max-width:520px){.dialogue-screen{padding:10px 10px calc(env(safe-area-inset-bottom,0px) + 10px)}.dialogue-panel{padding:12px}.dialogue-message{font-size:13px}}
+
+
+/* Village Life: penunjuk quest aktif, tetap ringkas di layar kecil. */
+.quest-tracker{position:fixed;z-index:4;top:calc(var(--st) + 52px);left:calc(var(--sl) + 8px);width:min(205px,48vw);padding:6px 8px;background:rgba(246,236,208,.94);border:2px solid var(--ink);box-shadow:2px 2px 0 rgba(0,0,0,.25);color:var(--ink);font:10px/1.35 "Courier New",monospace;pointer-events:none}
+.quest-tracker b,.quest-tracker span{display:block}
+.quest-tracker b{font-size:10px;margin-bottom:2px}
+.quest-tracker span{opacity:.85}
+.quest-choice{background:#d6e7bd;border-color:#49633a}
+
+/* V1.4.0 Tahap 6 — penyegaran visual menyeluruh tanpa mengubah tata letak gameplay. */
+:root{
+  --green:#5f9d4d; --green-dark:#263f2c; --brown:#805638; --brown-dark:#51351f;
+  --cream:#fbf1d8; --orange:#e99a4b; --sky:#91c9e7; --ink:#2c251d;
+}
+.screen{
+  background:
+    radial-gradient(ellipse at 50% 18%,rgba(246,220,160,.16),transparent 48%),
+    linear-gradient(145deg,rgba(24,43,29,.84),rgba(43,34,25,.78));
+  -webkit-backdrop-filter:blur(3px);
+  backdrop-filter:blur(3px);
+}
+.screen::before{
+  content:"";position:absolute;inset:12px;border:1px solid rgba(251,241,216,.16);
+  pointer-events:none;opacity:.75;
+}
+.screen>*{position:relative;z-index:1}
+.screen h1{
+  letter-spacing:1px;line-height:1.08;text-align:center;
+  color:#fff3d5;text-shadow:0 2px 0 #76502f,0 5px 0 #39291d,0 8px 22px rgba(0,0,0,.28);
+}
+.screen h2{text-shadow:0 2px 0 rgba(81,53,31,.55)}
+.tag{color:#c5e7a6;text-shadow:0 2px 0 rgba(25,50,31,.65);letter-spacing:1px}
+.btn{
+  border-radius:7px;border:2px solid #39291d;
+  background:linear-gradient(180deg,#fff7df 0%,#ead9b2 100%);
+  box-shadow:0 4px 0 #51351f,0 7px 16px rgba(0,0,0,.18);
+  transition:transform .12s ease,filter .12s ease,background .12s ease;
+}
+.btn:hover:not(:disabled),.btn:focus-visible{
+  background:linear-gradient(180deg,#f7c879 0%,#e99a4b 100%);filter:brightness(1.04);
+}
+.btn:focus-visible,.mini:focus-visible,.shop-tab:focus-visible,.dialogue-choice:focus-visible{
+  outline:3px solid #fff3b0;outline-offset:2px;
+}
+.panel{
+  border:3px solid #3b2a1d;border-radius:10px;
+  background:linear-gradient(155deg,#fff6df 0%,#f1e2bf 100%);
+  box-shadow:0 7px 0 rgba(63,42,25,.78),0 16px 38px rgba(0,0,0,.25);
+}
+.panel-head{gap:10px;padding-bottom:7px;border-bottom:1px solid rgba(128,86,56,.35)}
+.panel h2{letter-spacing:.2px}
+.coins{border-radius:5px;background:linear-gradient(180deg,#f6c66e,#e99a4b);box-shadow:inset 0 1px rgba(255,255,255,.45)}
+.row{border-bottom:1px dashed rgba(128,86,56,.48);padding:2px 3px}
+.row:hover{background:rgba(213,230,185,.35)}
+.mini,.shop-tab,.dialogue-choice,.dialogue-close{border-radius:5px;transition:filter .12s ease,transform .12s ease}
+.mini:not(:disabled):hover,.shop-tab:hover,.dialogue-choice:hover{filter:brightness(1.06)}
+.shop-tab{background:linear-gradient(180deg,#f1e5c7,#dfc99a)}
+.shop-tab.active{background:linear-gradient(180deg,#83b66a,#527f43);color:#fffdf5}
+.dialogue-screen{background:rgba(17,29,20,.58);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.dialogue-panel{
+  border:3px solid #39291d;border-radius:12px;
+  background:linear-gradient(145deg,#fff5d9,#ead9b5);
+  box-shadow:0 7px 0 rgba(36,27,19,.7),0 18px 40px rgba(0,0,0,.28);
+}
+.dialogue-mark{border-radius:7px;box-shadow:inset 0 1px rgba(255,255,255,.4)}
+.dialogue-choice{background:linear-gradient(180deg,#f2e5c5,#e2cea0)}
+.dialogue-choice.quest-choice{background:linear-gradient(180deg,#e3efcf,#c7dda9)}
+.dialogue-close{border-radius:6px;background:linear-gradient(180deg,#79a965,#527d43)}
+.quest-tracker{
+  border:2px solid #453323;border-radius:7px;
+  background:linear-gradient(145deg,rgba(255,247,222,.97),rgba(235,222,190,.96));
+  box-shadow:0 3px 0 rgba(42,31,21,.35),0 5px 14px rgba(0,0,0,.12);
+}
+#errBox{border-radius:6px;box-shadow:0 5px 18px rgba(0,0,0,.25)}
+@media(max-width:520px){
+  .screen::before{inset:7px}
+  .panel{border-width:2px;border-radius:8px;padding:10px}
+  .dialogue-panel{border-radius:9px}
+  .quest-tracker{width:min(190px,48vw);font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.btn,.mini,.shop-tab,.dialogue-choice{transition:none}}
+
+.dialogue-choice.social-choice{background:linear-gradient(180deg,#e2edf0,#c7dce0)}
+.dialogue-choice:disabled{opacity:.55;cursor:default;filter:saturate(.55)}
+
+/* Pasar Desa — fungsi jual hasil panen, terpisah dari Toko Kebun. */
+.market-note,.market-empty{margin:2px 0 6px;color:var(--brown-dark);font-size:clamp(11px,2.8vh,13px);line-height:1.4}
